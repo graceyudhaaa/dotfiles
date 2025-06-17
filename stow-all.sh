@@ -1,4 +1,15 @@
 #!/bin/bash
-for dir in fish sxhkd rofi polybar mpv starship; do
+dirs=(
+  fish
+  sxhkd
+  rofi
+  polybar
+  mpv
+  starship
+  autostart
+  picom
+  kitty
+)
+for dir in "${dirs[@]}"; do
   stow --target="$HOME" "$dir"
 done
