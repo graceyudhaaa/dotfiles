@@ -1,0 +1,13 @@
+[Desktop Entry]
+Encoding=UTF-8
+Version=0.9.4
+Type=Application
+Name=feh wallpaper
+Comment=feh wallpaper
+Exec=feh --bg-fill /home/graceyudha/Pictures/5825552.jpg
+OnlyShowIn=XFCE;
+RunHook=0
+StartupNotify=false
+Terminal=false
+Hidden=false
+
