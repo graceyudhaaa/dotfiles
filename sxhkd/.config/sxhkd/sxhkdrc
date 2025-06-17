@@ -1,6 +1,6 @@
 # # terminal emulator
 ctrl + alt + t
-  xfce4-terminal
+  kitty
 
 # pop up whisker menu
 # super + space
