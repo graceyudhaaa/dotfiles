@@ -1,13 +1,29 @@
 # unused fonts
+# .fonts
 0xProto
-Agave
-Lexend
+CascadiaCode
+# JetBrainsMono
 Meslo
-Noto
 singkong
+Agave
+FontAwesome.otf  
+Lexend
+Noto
+
+# unused themes
+.themes/*
+prelude-dfr-0.5-tokyo
+Tokyonight-Dark-Moon-hdpi
+Tokyonight-Dark-Moon
+Tokyonight-Dark-Moon-xhdpi
 
 # unused icons (so that it would not pushed too much)
+.icons/*
 Vimix
-Vimix-dark
-Vimix-Black
 Vimix-Black-dark
+Vimix-Doder
+Vimix-White
+Vimix-Black
+Vimix-dark
+Vimix-Doder-dark
+Vimix-White-dark
