@@ -20,10 +20,10 @@ Tokyonight-Dark-Moon
 # unused icons (so that it would not pushed too much)
 .icons/*
 Vimix
+Vimix-dark
+Vimix-Black
 Vimix-Black-dark
 Vimix-Doder
+# Vimix-Doder-dark
 Vimix-White
-Vimix-Black
-Vimix-dark
-Vimix-Doder-dark
-Vimix-White-dark
+# Vimix-White-dark
