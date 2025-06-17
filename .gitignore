@@ -11,11 +11,11 @@ Lexend
 Noto
 
 # unused themes
-.themes/*
+# .themes/*
 prelude-dfr-0.5-tokyo
-Tokyonight-Dark-Moon-hdpi
+# Tokyonight-Dark-Moon-hdpi
 Tokyonight-Dark-Moon
-Tokyonight-Dark-Moon-xhdpi
+# Tokyonight-Dark-Moon-xhdpi
 
 # unused icons (so that it would not pushed too much)
 .icons/*
