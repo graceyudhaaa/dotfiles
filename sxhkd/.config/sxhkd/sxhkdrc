@@ -1,0 +1,95 @@
+# # terminal emulator
+ctrl + alt + t
+  xfce4-terminal
+
+# pop up whisker menu
+# super + space
+#   xfce4-popup-whiskermenu
+
+# open rofi
+ctrl + space
+  rofi -modi drun,run,window,ssh -show drun -theme ~/.config/rofi/themes/tokyonight.rasi
+
+# open file manager
+ctrl + alt + f
+  thunar
+
+# xfce4-appfinder
+alt + F3
+  xfce4-appfinder
+
+super + r
+  xfce4-appfinder -c
+
+alt + F2
+  xfce4-appfinder --collapsed
+
+# super + p
+#   xfce4-display-settings --minimal
+
+super + p
+  polybar &
+
+super + shift + p
+  pkill polybar
+
+# mute unmute volume
+super + m
+  pactl set-sink-mute @DEFAULT_SINK@ toggle
+
+# increase volume
+super + period
+  pactl set-sink-volume @DEFAULT_SINK@ +5%
+
+# decrease volume
+super + comma
+  pactl set-sink-volume @DEFAULT_SINK@ -5%
+
+alt + F1
+  xfce4-popup-applications-menu
+
+#  screenshot fullscreen
+super + u
+  xfce4-screenshooter
+
+#  screenshot active window
+super + w
+  xfce4-screenshooter -w
+
+#  screenshot selected area
+ctrl + alt + s
+  xfce4-screenshooter -r
+
+ctrl + alt + Delete
+  xfce4-session-logout
+
+shift + ctrl + Escape
+  xfce4-taskmanager
+
+ctrl + Escape
+  xfdesktop --menu
+
+ctrl + alt + Escape
+  xkill
+
+# move to the next workspace
+# Previous workspace
+ctrl + alt + left
+    wmctrl -s $(( $(wmctrl -d | awk '/\*/ {print $1}') - 1 ))
+
+# Next workspace
+ctrl + alt + right
+    wmctrl -s $(( $(wmctrl -d | awk '/\*/ {print $1}') + 1 ))
+
+
+# Show desktop
+super + d
+  wmctrl -k on
+
+super + shift + d
+  wmctrl -k off
+
+
+# # make sxhkd reload its configuration files:
+super + Escape
+  pkill -USR1 -x sxhkd

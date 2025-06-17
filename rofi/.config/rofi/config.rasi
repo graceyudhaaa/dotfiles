@@ -1,0 +1,30 @@
+configuration {
+    modi: "window,run,drun,ssh";
+    show-icons: true;
+    display-window: "Windows:";
+    display-run: "Run:";
+    display-drun: "Apps:";
+    display-ssh: "SSH:";
+    font: "monospace 12";
+    lines: 6;
+    columns: 3;
+    icon-theme: "Papirus";
+}
+
+
+listview {
+    lines: 6;
+    columns: 3;
+    spacing: 8px;
+    fixed-height: true;
+}
+
+element {
+    padding: 6px 10px;
+    border-radius: 4px;
+}
+
+element-icon {
+    size: 32px;
+    margin: 0 8px 0 0;
+}
