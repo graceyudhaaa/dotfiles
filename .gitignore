@@ -1,29 +1,21 @@
 # unused fonts
-# .fonts
-0xProto
-CascadiaCode
-# JetBrainsMono
-Meslo
-singkong
-Agave
-# FontAwesome.otf  
-Lexend
-Noto
+fonts/.fonts/*
+# 0xProto
+# CascadiaCode
+!fonts/.fonts/JetBrainsMono
+# Meslo
+# singkong
+# Agave
+!fonts/.fonts/FontAwesome.otf
+# Lexend
+# Noto
 
 # unused themes
-# .themes/*
-prelude-dfr-0.5-tokyo
-# Tokyonight-Dark-Moon-hdpi
-Tokyonight-Dark-Moon
-# Tokyonight-Dark-Moon-xhdpi
+themes/.themes/*
+!themes/.themes/prelude-dfr-0.5-tokyo
+!themes/.themes/Tokyonight-Dark-Moon
 
 # unused icons (so that it would not pushed too much)
-.icons/*
-Vimix
-Vimix-dark
-Vimix-Black
-Vimix-Black-dark
-Vimix-Doder
-# Vimix-Doder-dark
-Vimix-White
-# Vimix-White-dark
+icons/.icons/*
+!icons/.icons/Vimix-Doder-dark
+!icons/.icons/Vimix-White-dark
