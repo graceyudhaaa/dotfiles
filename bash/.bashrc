@@ -120,6 +120,8 @@ eval "$(pyenv init - bash)"
 
 . "$HOME/.local/bin/env"
 
+eval "$(pyenv virtualenv-init -)"
+
 eval "$(starship init bash)"
 
 source ~/.local/share/blesh/ble-0.4.0-devel3/ble.sh
