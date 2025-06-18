@@ -30,7 +30,7 @@ while true; do
         pkill polybar
         was_fullscreen=1
     elif [ "$is_fullscreen" -eq 0 ] && [ "$was_fullscreen" -eq 1 ]; then
-        polybar "$BAR_NAME" &
+        polybar main --config=~/.config/polybar/config.ini &
         was_fullscreen=0
     fi
 
