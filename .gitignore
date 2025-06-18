@@ -19,3 +19,5 @@ themes/.themes/*
 icons/.icons/*
 !icons/.icons/Vimix-Doder-dark
 !icons/.icons/Vimix-White-dark
+
+mpv_sub-delay.json
