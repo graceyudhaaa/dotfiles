@@ -21,6 +21,7 @@
 * {
     bg: #222436;
     hv: #7dcfff;//#bb9af7;
+    hva:rgba(125, 207, 255, 0.5);
     primary: #c8d3f5;
     ug: #1e2030;
     font: "Monospace 11";
@@ -157,7 +158,7 @@ scrollbar {
 
 sidebar {
     border: 0px 0px 0px 0px;
-    background-color: @hv;
+    background-color: @hva;
     padding: 0px;
     text-color: @hv;
 }
