@@ -54,7 +54,7 @@ window {
 
 mainbox {
     spacing: 0;
-    children: [ inputbar, message, listview ];
+    children: [ inputbar, message, listview, sidebar ];
 }
 
 inputbar {
@@ -154,3 +154,10 @@ button selected normal {
 scrollbar {
     enabled: true;
 } 
+
+sidebar {
+    border: 0px 0px 0px 0px;
+    background-color: @hv;
+    padding: 0px;
+    text-color: @hv;
+}
