@@ -86,18 +86,18 @@ prompt {
 
 listview {
     layout: vertical;
-    //spacing: 5px;
+    spacing: 5px;
     padding: 8px;
-    lines: 12;
     columns: 1;
-    lines: 6;
     columns: 3;
     spacing: 8px;
     fixed-height: true;
     // border: 0px 3px 3px 3px; 
     // border-radius: 0px 0px 6px 6px;
     // border-color: @primary;
-    dynamic: false;
+    lines: 6;
+    // max-lines: 6;
+    dynamic: true;
 }
 
 element {
