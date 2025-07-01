@@ -89,6 +89,10 @@ super + d
 super + shift + d
   wmctrl -k off
 
+# Show power menu
+super + l
+  ~/.config/polybar/scripts/rofi-power-menu.sh
+
 
 # # make sxhkd reload its configuration files:
 super + Escape
