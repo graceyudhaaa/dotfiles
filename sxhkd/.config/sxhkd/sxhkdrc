@@ -50,15 +50,15 @@ alt + F1
 
 #  screenshot fullscreen
 super + u
-  xfce4-screenshooter
+  xfce4-screenshooter -f -c -s ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png
 
 #  screenshot active window
 super + w
-  xfce4-screenshooter -w
+  xfce4-screenshooter -w -c -s ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png
 
 #  screenshot selected area
 ctrl + alt + s
-  xfce4-screenshooter -r
+  xfce4-screenshooter -r -c -s ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png
 
 ctrl + alt + Delete
   xfce4-session-logout
