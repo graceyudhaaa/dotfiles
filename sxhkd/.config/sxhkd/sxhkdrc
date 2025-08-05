@@ -30,6 +30,9 @@ alt + F2
 super + p
   polybar &
 
+super + v
+  diodon
+
 super + shift + p
   pkill polybar
 
@@ -92,6 +95,9 @@ super + shift + d
 # Show power menu
 super + l
   ~/.config/polybar/scripts/rofi-power-menu.sh
+
+super + shift + l
+  xflock4
 
 
 # # make sxhkd reload its configuration files:
