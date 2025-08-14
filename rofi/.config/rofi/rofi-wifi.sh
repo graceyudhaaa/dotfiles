@@ -1,5 +1,5 @@
 #!/bin/bash
-# filepath: ~/bin/rofi-wifi.sh
+# filepath: /home/graceyudha/code/dotfiles/rofi/.config/rofi/rofi-wifi.sh
 
 ROFI_THEME="$HOME/.config/rofi/themes/tokyonight.rasi"
 
@@ -7,6 +7,19 @@ get_current_ssid() {
     nmcli -t -f active,ssid dev wifi | grep '^yes' | cut -d: -f2
 }
 
+wired_connected=$(nmcli -t -f DEVICE,TYPE,STATE dev | awk -F: '$2=="ethernet" && $3=="connected" {print $1}')
+CURRENT_SSID=$(get_current_ssid)
+
+# If connected, just show a notification and exit
+if [ -n "$wired_connected" ]; then
+    notify-send "Network" "Connected (wired): $wired_connected"
+    exit 0
+elif [ -n "$CURRENT_SSID" ]; then
+    notify-send "Network" "Connected (Wi-Fi): $CURRENT_SSID"
+    exit 0
+fi
+
+# If not connected, show the WiFi connection prompt
 while true; do
     CURRENT_SSID=$(get_current_ssid)
 
