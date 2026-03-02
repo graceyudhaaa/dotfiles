@@ -93,6 +93,10 @@ super + shift + d
 super + l
   ~/.config/polybar/scripts/rofi-power-menu.sh
 
+# show network menu
+super + n
+  ~/.config/polybar/rofi-wifi.sh
+
 
 # # make sxhkd reload its configuration files:
 super + Escape
