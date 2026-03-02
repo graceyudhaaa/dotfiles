@@ -94,18 +94,12 @@ if [ "$DEBUG" = "1" ]; then
 
     for dep in nmcli rofi notify-send; do
         if command -v "$dep" >/dev/null 2>&1; then
-            _log OK "Dependency found: $dep ($(command -v "$dep"))"
+            _log OK "Dependency found: $dep"
         else
             _log ERROR "Dependency MISSING: $dep"
         fi
     done
-    for opt_dep in qrencode wl-copy curl dig traceroute mtr; do
-        if command -v "$opt_dep" >/dev/null 2>&1; then
-            _log INFO "Optional dependency found: $opt_dep"
-        else
-            _log WARN "Optional dependency missing: $opt_dep"
-        fi
-    done
+    # Skip optional dependency checks — too slow
 fi
 
 trap 'log_info "Cleaning up temp files"; rm -f "$LOG_FILE"; log_info "═══ rofi-wifi.sh exited (code: $?) ═══"' EXIT
@@ -200,12 +194,12 @@ is_enterprise() {
 
 wifi_list() {
     log_info "Scanning WiFi networks..."
-    nmcli dev wifi rescan 2>/dev/null
-    sleep 1
+    # Rescan in background — don't wait for it
+    nmcli dev wifi rescan 2>/dev/null &
 
-    local raw_count
-    raw_count=$(nmcli -t -f SSID,SIGNAL,SECURITY,FREQ dev wifi 2>/dev/null | grep -v '^:' | wc -l)
-    log_info "Raw networks found: $raw_count"
+    # Pre-fetch saved networks once instead of per-SSID
+    local saved_networks
+    saved_networks=$(nmcli -t -f NAME connection show 2>/dev/null)
 
     local result
     result=$(nmcli -t -f SSID,SIGNAL,SECURITY,FREQ dev wifi \
@@ -223,10 +217,9 @@ wifi_list() {
             local band
             band=$(get_band "$freq")
             local saved=""
-            if nmcli -t -f NAME connection show 2>/dev/null | grep -qx "$ssid"; then
+            if echo "$saved_networks" | grep -qx "$ssid"; then
                 saved=" 󰆓"
             fi
-            # Mark enterprise networks
             local ent_tag=""
             if is_enterprise "$security"; then
                 ent_tag=" 󰈸"
