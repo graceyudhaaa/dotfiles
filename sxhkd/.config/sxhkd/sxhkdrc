@@ -90,12 +90,16 @@ super + shift + d
   wmctrl -k off
 
 # Show power menu
-super + l
+super + shift + l
   ~/.config/polybar/scripts/rofi-power-menu.sh
 
 # show network menu
-super + n
-  ~/.config/polybar/rofi-wifi.sh
+super + shift + n
+  ~/.config/rofi/rofi-wifi.sh
+
+# wallpaper switcher
+super + shift + b
+    ~/.config/rofi/wallpaper-switcher.sh
 
 
 # # make sxhkd reload its configuration files:

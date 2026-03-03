@@ -10,6 +10,7 @@ dirs=(
   rofi
   starship
   sxhkd
+  wallpaper
 )
 for dir in "${dirs[@]}"; do
   stow --target="$HOME" "$dir"
