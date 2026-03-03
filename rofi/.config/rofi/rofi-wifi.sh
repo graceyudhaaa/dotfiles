@@ -78,21 +78,25 @@ run_cmd() {
     return $exit_code
 }
 
-# Initialize debug session
+# Initialize debug session (non-blocking — fire and forget)
 if [ "$DEBUG" = "1" ]; then
-    echo "" >> "$DEBUG_LOG"
-    echo "════════════════════════════════════════════════════════════" >> "$DEBUG_LOG"
+    {
+        echo ""
+        echo "════════════════════════════════════════════════════════════"
+    } >> "$DEBUG_LOG"
     _log INFO "═══ rofi-wifi.sh started (PID: $$) ═══"
     _log INFO "Date: $(date)"
     _log INFO "User: $(whoami)"
     _log INFO "Shell: $SHELL ($BASH_VERSION)"
     _log INFO "Theme: $ROFI_THEME"
     _log INFO "Debug log: $DEBUG_LOG"
-    
-    # Run slow checks in background instead of sequentially
-    (nmcli --version 2>/dev/null | while read -r line; do _log INFO "nmcli version: $line"; done) &
-    (rofi -version 2>/dev/null | head -1 | while read -r line; do _log INFO "rofi version: $line"; done) &
-    (systemctl is-active NetworkManager 2>/dev/null | while read -r line; do _log INFO "NetworkManager status: $line"; done) &
+
+    # Fire and forget — don't wait
+    {
+        nmcli --version 2>/dev/null | while read -r line; do _log INFO "nmcli version: $line"; done
+        rofi -version 2>/dev/null | head -1 | while read -r line; do _log INFO "rofi version: $line"; done
+        systemctl is-active NetworkManager 2>/dev/null | while read -r line; do _log INFO "NetworkManager status: $line"; done
+    } &
 
     for dep in nmcli rofi notify-send; do
         if command -v "$dep" >/dev/null 2>&1; then
@@ -101,8 +105,7 @@ if [ "$DEBUG" = "1" ]; then
             _log ERROR "Dependency MISSING: $dep"
         fi
     done
-    
-    wait  # Wait for background checks to complete
+    # Removed: wait
 fi
 
 trap 'log_info "Cleaning up temp files"; rm -f "$LOG_FILE"; log_info "═══ rofi-wifi.sh exited (code: $?) ═══"' EXIT
@@ -111,7 +114,7 @@ trap 'log_info "Cleaning up temp files"; rm -f "$LOG_FILE"; log_info "═══ 
 
 notify() {
     log_info "NOTIFY: $1"
-    notify-send -i "$NOTIFY_ICON" "WiFi" "$1"
+    notify-send -i "$NOTIFY_ICON" "WiFi" "$1" &
 }
 
 rofi_menu() {
@@ -197,53 +200,67 @@ is_enterprise() {
 }
 
 wifi_list() {
-    log_info "Scanning WiFi networks..."
-    # Background rescan — completely non-blocking
-    nmcli dev wifi rescan 2>/dev/null &
-    local rescan_pid=$!
+    log_info "Building WiFi list from cache..."
 
-    # Pre-fetch saved networks once instead of per-SSID
+    # Fire off rescan in background — don't wait at all
+    # nmcli dev wifi rescan 2>/dev/null &
+
+    # Pre-fetch saved networks once
     local saved_networks
     saved_networks=$(nmcli -t -f NAME connection show 2>/dev/null)
 
-    local result
-    result=$(nmcli -t -f SSID,SIGNAL,SECURITY,FREQ dev wifi 2>/dev/null \
+    # Use awk to do ALL formatting in a single process instead of
+    # spawning subshells per line (signal_icon, security_icon, get_band, is_enterprise)
+    nmcli -t -f SSID,SIGNAL,SECURITY,FREQ dev wifi 2>/dev/null \
         | grep -v '^:' \
         | sort -t: -k2,2 -rn \
-        | awk -F: '!seen[$1]++ { print }' \
-        | while IFS=: read -r ssid signal security freq; do
-            [ -z "$ssid" ] && continue
-            local icon
-            icon=$(signal_icon "$signal")
-            local sec
-            sec=$([ "$security" = "" ] || [ "$security" = "--" ] && echo "open" || echo "$security")
-            local lock
-            lock=$(security_icon "$sec")
-            local band
-            band=$(get_band "$freq")
-            local saved=""
-            if echo "$saved_networks" | grep -qx "$ssid"; then
-                saved=" 󰆓"
-            fi
-            local ent_tag=""
-            if is_enterprise "$security"; then
-                ent_tag=" 󰈸"
-            fi
-            printf "%s %s  %-28s  %3s%%  %s  %s%s%s\n" "$icon" "$lock" "$ssid" "$signal" "$sec" "$band" "$ent_tag" "$saved"
-        done)
+        | awk -F: -v saved="$saved_networks" '
+        BEGIN {
+            # Build saved network lookup
+            n = split(saved, arr, "\n")
+            for (i = 1; i <= n; i++) saved_map[arr[i]] = 1
+        }
+        !seen[$1]++ && $1 != "" {
+            ssid = $1
+            signal = $2 + 0
+            security = $3
+            freq = $4 + 0
 
-    local dedup_count
-    dedup_count=$(echo "$result" | grep -c '[^ ]')
-    log_info "Deduplicated networks: $dedup_count"
+            # signal_icon
+            if (signal >= 80) sig_icon = "󰤨"
+            else if (signal >= 60) sig_icon = "󰤥"
+            else if (signal >= 40) sig_icon = "󰤢"
+            else if (signal >= 20) sig_icon = "󰤟"
+            else sig_icon = "󰤯"
 
-    if [ "$DEBUG" = "1" ]; then
-        while IFS= read -r line; do
-            [ -n "$line" ] && log_debug "  SSID: $line"
-        done <<< "$result"
-    fi
+            # security_icon
+            if (security == "" || security == "--")
+                lock = "󰌾"
+            else
+                lock = "󰌷"
 
-    echo "$result"
-    # Don't wait for rescan — user gets menu instantly
+            # sec label
+            if (security == "" || security == "--")
+                sec = "open"
+            else
+                sec = security
+
+            # get_band
+            if (freq >= 5000) band = "5 GHz"
+            else if (freq >= 2400) band = "2.4 GHz"
+            else band = ""
+
+            # is_enterprise
+            ent_tag = ""
+            if (security ~ /802\.1X|WPA[23]-Enterprise|enterprise|EAP/)
+                ent_tag = " 󰈸"
+
+            # saved check
+            saved_tag = ""
+            if (ssid in saved_map) saved_tag = " 󰆓"
+
+            printf "%s %s  %-28s  %3d%%  %s  %s%s%s\n", sig_icon, lock, ssid, signal, sec, band, ent_tag, saved_tag
+        }'
 }
 
 extract_ssid() {
@@ -646,6 +663,7 @@ edit_enterprise_settings() {
 
 # ─── Connection Details ─────────────────────────────────────────────
 
+
 show_connection_details() {
     local ssid="$1"
     local wifi_dev
@@ -653,26 +671,26 @@ show_connection_details() {
 
     log_info "Showing connection details for '$ssid' on device '$wifi_dev'"
 
-    # Batch all nmcli queries into one call instead of multiple
-    local -a details
-    mapfile -t details < <(nmcli -t -f \
-        IP4.ADDRESS,IP4.GATEWAY,IP4.DNS,IP6.ADDRESS,GENERAL.HWADDR,WIFI.BITRATE \
-        dev show "$wifi_dev" 2>/dev/null)
-    
-    local ip="${details[0]#IP4.ADDRESS:}"
-    local gateway="${details[1]#IP4.GATEWAY:}"
-    local dns="${details[2]#IP4.DNS:}"
-    local ipv6="${details[3]#IP6.ADDRESS:}"
-    local mac="${details[4]#GENERAL.HWADDR:}"
-    local speed="${details[5]#WIFI.BITRATE:}"
-    
-    # Still get active connection stats (can't batch with device stats)
-    local signal
-    signal=$(nmcli -t -f active,signal dev wifi 2>/dev/null | grep '^yes' | cut -d: -f2)
-    local freq
-    freq=$(nmcli -t -f active,freq dev wifi 2>/dev/null | grep '^yes' | cut -d: -f2)
-    local security
-    security=$(nmcli -t -f active,security dev wifi 2>/dev/null | grep '^yes' | cut -d: -f2)
+    # Single nmcli call for device info — parse all fields at once
+    local dev_info
+    dev_info=$(nmcli -t dev show "$wifi_dev" 2>/dev/null)
+
+    local ip gateway dns ipv6 mac speed
+    ip=$(echo "$dev_info" | grep '^IP4.ADDRESS' | head -1 | cut -d: -f2-)
+    gateway=$(echo "$dev_info" | grep '^IP4.GATEWAY' | head -1 | cut -d: -f2-)
+    dns=$(echo "$dev_info" | grep '^IP4.DNS' | head -1 | cut -d: -f2-)
+    ipv6=$(echo "$dev_info" | grep '^IP6.ADDRESS' | head -1 | cut -d: -f2-)
+    mac=$(echo "$dev_info" | grep '^GENERAL.HWADDR' | head -1 | cut -d: -f2-)
+    speed=$(echo "$dev_info" | grep '^WIFI.BITRATE' | head -1 | cut -d: -f2-)
+
+    # Single nmcli call for active wifi stats
+    local wifi_info
+    wifi_info=$(nmcli -t -f active,signal,freq,security dev wifi 2>/dev/null | grep '^yes')
+
+    local signal freq security
+    signal=$(echo "$wifi_info" | cut -d: -f2)
+    freq=$(echo "$wifi_info" | cut -d: -f3)
+    security=$(echo "$wifi_info" | cut -d: -f4)
 
     log_debug "Details: ip=$ip gw=$gateway dns=$dns mac=$mac speed=$speed signal=$signal freq=$freq sec=$security"
 
@@ -681,11 +699,16 @@ show_connection_details() {
     local sig_icon
     sig_icon=$(signal_icon "${signal:-0}")
 
-    # Check if this is an Enterprise connection
-    local conn_eap
-    conn_eap=$(nmcli -t -f 802-1x.eap connection show id "$ssid" 2>/dev/null | cut -d: -f2)
-    local conn_identity
-    conn_identity=$(nmcli -t -f 802-1x.identity connection show id "$ssid" 2>/dev/null | cut -d: -f2)
+    # Single nmcli call for connection settings (batch eap, identity, autoconnect, metered)
+    local conn_info
+    conn_info=$(nmcli -t -f 802-1x.eap,802-1x.identity,connection.autoconnect,connection.metered \
+        connection show id "$ssid" 2>/dev/null)
+
+    local conn_eap conn_identity autoconnect_val metered_val
+    conn_eap=$(echo "$conn_info" | grep '^802-1x.eap' | cut -d: -f2)
+    conn_identity=$(echo "$conn_info" | grep '^802-1x.identity' | cut -d: -f2)
+    autoconnect_val=$(echo "$conn_info" | grep '^connection.autoconnect' | cut -d: -f2)
+    metered_val=$(echo "$conn_info" | grep '^connection.metered' | cut -d: -f2)
 
     local details=""
     details+="╔══════════════════════════════════════╗\n"
@@ -707,11 +730,6 @@ show_connection_details() {
     details+="║  IPv6:       ${ipv6:-not assigned}\n"
     details+="║  MAC:        ${mac:-unknown}\n"
     details+="╚══════════════════════════════════════╝"
-
-    local autoconnect_val
-    autoconnect_val=$(nmcli -t -f connection.autoconnect connection show id "$ssid" 2>/dev/null | cut -d: -f2)
-    local metered_val
-    metered_val=$(nmcli -t -f connection.metered connection show id "$ssid" 2>/dev/null | cut -d: -f2)
 
     # Build menu — include 802.1X option if it's an enterprise connection
     local menu_items="  Back\n  Forget Network\n  Change DNS\n  Auto-connect: $autoconnect_val\n  Metered: $metered_val\n  Copy IP Address\n  Disconnect"
@@ -1102,9 +1120,13 @@ network_diagnostics() {
 
 # ─── Main Flow ───────────────────────────────────────────────────────
 
+
 log_info "═══ Starting main flow ═══"
 
-WIFI_STATE=$(get_wifi_state)
+# Batch initial state queries into parallel subshells
+WIFI_STATE=$(nmcli radio wifi)
+wifi_dev_cache=$(nmcli -t -f DEVICE,TYPE dev 2>/dev/null | awk -F: '$2=="wifi" {print $1; exit}')
+_CACHED_WIFI_DEVICE="$wifi_dev_cache"
 
 if [ "$WIFI_STATE" = "disabled" ]; then
     log_warn "WiFi is disabled"
@@ -1113,35 +1135,52 @@ if [ "$WIFI_STATE" = "disabled" ]; then
         log_info "Enabling WiFi radio"
         run_cmd "Enable WiFi" nmcli radio wifi on
         notify "WiFi enabled"
-        # sleep 2
     else
         log_info "User cancelled, exiting"
         exit 0
     fi
 fi
 
-wired_connected=$(nmcli -t -f DEVICE,TYPE,STATE dev | awk -F: '$2=="ethernet" && $3=="connected" {print $1}')
-[ -n "$wired_connected" ] && log_info "Wired connection detected: $wired_connected"
-CURRENT_SSID=$(get_current_ssid)
+# Get active connections in parallel
+wired_connected=""
+CURRENT_SSID=""
 
+# Fast: check active connections only
+active_cons=$(nmcli -t -f NAME,TYPE,DEVICE connection show --active 2>/dev/null)
+
+# Extract WiFi SSID
+CURRENT_SSID=$(echo "$active_cons" | awk -F: '$2=="802-11-wireless" {print $1; exit}')
+
+# Extract wired device (optional)
+wired_connected=$(echo "$active_cons" | awk -F: '$2=="802-3-ethernet" {print $3; exit}')
+
+[ -n "$wired_connected" ] && log_info "Wired connection detected: $wired_connected"
 # ─── Connected Menu ─────────────────────────────────────────────────
 
 if [ -n "$CURRENT_SSID" ]; then
     log_info "Currently connected to '$CURRENT_SSID'"
     wifi_dev=$(get_wifi_device)
-    signal=$(nmcli -t -f active,signal dev wifi 2>/dev/null | grep '^yes' | cut -d: -f2)
+
+    # Single call for active wifi stats
+    signal=$(nmcli -t -f SSID,SIGNAL dev wifi 2>/dev/null | grep "^${CURRENT_SSID}:" | head -1 | cut -d: -f2)
     sig_icon=$(signal_icon "${signal:-0}")
-    ip_addr=$(nmcli -t -f IP4.ADDRESS dev show "$wifi_dev" 2>/dev/null | head -1 | cut -d: -f2)
 
-    # Check if current connection is Enterprise
-    conn_eap=$(nmcli -t -f 802-1x.eap connection show id "$CURRENT_SSID" 2>/dev/null | cut -d: -f2)
-    conn_identity=$(nmcli -t -f 802-1x.identity connection show id "$CURRENT_SSID" 2>/dev/null | cut -d: -f2)
+    # Only show wired if it's actually a DIFFERENT device than wifi
+    wired_note=""
+    if [ -n "$wired_connected" ] && [ "$wired_connected" != "$wifi_dev" ]; then
+        wired_note="\n  Also wired: $wired_connected"
+    fi
 
-    log_debug "Signal: ${signal:-?}% IP: ${ip_addr:-none} EAP: ${conn_eap:-none}"
+    # Single call for connection enterprise info
+    _conn_info=$(nmcli -t -f 802-1x.eap,802-1x.identity connection show id "$CURRENT_SSID" 2>/dev/null)
+    conn_eap=$(echo "$_conn_info" | grep '^802-1x.eap' | cut -d: -f2)
+    conn_identity=$(echo "$_conn_info" | grep '^802-1x.identity' | cut -d: -f2)
 
-    STATUS_LINE="$sig_icon  $CURRENT_SSID  │  ${signal:-?}%  │  ${ip_addr:-no ip}"
+    log_debug "Signal: ${signal:-?}% EAP: ${conn_eap:-none} Wired: ${wired_connected:-none}"
+
+    STATUS_LINE="$sig_icon  $CURRENT_SSID  │  SIGNAL: ${signal:-?}%"
     [ -n "$conn_eap" ] && STATUS_LINE+="\n  Auth: 802.1X ($conn_eap)  │  User: $conn_identity"
-    [ -n "$wired_connected" ] && STATUS_LINE+="\n  Also connected: $wired_connected (wired)"
+    STATUS_LINE+="$wired_note"
 
     menu_items="  $CURRENT_SSID (connected)\n  Connection Details\n  Switch Network\n  Disconnect\n  Saved Networks\n  Hotspot\n  Diagnostics\n  Change DNS\n  Disable WiFi"
     [ -n "$conn_eap" ] && menu_items="  $CURRENT_SSID (connected)\n  Connection Details\n  802.1X Settings\n  Switch Network\n  Disconnect\n  Saved Networks\n  Hotspot\n  Diagnostics\n  Change DNS\n  Disable WiFi"
