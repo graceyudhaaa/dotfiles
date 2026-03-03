@@ -88,9 +88,11 @@ if [ "$DEBUG" = "1" ]; then
     _log INFO "Shell: $SHELL ($BASH_VERSION)"
     _log INFO "Theme: $ROFI_THEME"
     _log INFO "Debug log: $DEBUG_LOG"
-    _log INFO "nmcli version: $(nmcli --version 2>/dev/null || echo 'NOT FOUND')"
-    _log INFO "rofi version: $(rofi -version 2>/dev/null | head -1 || echo 'NOT FOUND')"
-    _log INFO "NetworkManager status: $(systemctl is-active NetworkManager 2>/dev/null || echo 'unknown')"
+    
+    # Run slow checks in background instead of sequentially
+    (nmcli --version 2>/dev/null | while read -r line; do _log INFO "nmcli version: $line"; done) &
+    (rofi -version 2>/dev/null | head -1 | while read -r line; do _log INFO "rofi version: $line"; done) &
+    (systemctl is-active NetworkManager 2>/dev/null | while read -r line; do _log INFO "NetworkManager status: $line"; done) &
 
     for dep in nmcli rofi notify-send; do
         if command -v "$dep" >/dev/null 2>&1; then
@@ -99,7 +101,8 @@ if [ "$DEBUG" = "1" ]; then
             _log ERROR "Dependency MISSING: $dep"
         fi
     done
-    # Skip optional dependency checks — too slow
+    
+    wait  # Wait for background checks to complete
 fi
 
 trap 'log_info "Cleaning up temp files"; rm -f "$LOG_FILE"; log_info "═══ rofi-wifi.sh exited (code: $?) ═══"' EXIT
@@ -144,13 +147,14 @@ get_wifi_state() {
     echo "$state"
 }
 
+_CACHED_WIFI_DEVICE=""
 get_wifi_device() {
-    local dev
-    dev=$(nmcli -t -f DEVICE,TYPE dev | awk -F: '$2=="wifi" {print $1; exit}')
-    log_debug "WiFi device: '${dev:-<none>}'"
-    echo "$dev"
+    if [ -z "$_CACHED_WIFI_DEVICE" ]; then
+        _CACHED_WIFI_DEVICE=$(nmcli -t -f DEVICE,TYPE dev 2>/dev/null | awk -F: '$2=="wifi" {print $1; exit}')
+    fi
+    log_debug "WiFi device: '${_CACHED_WIFI_DEVICE:-<none>}'"
+    echo "$_CACHED_WIFI_DEVICE"
 }
-
 signal_icon() {
     local signal=$1
     if [ "$signal" -ge 80 ]; then echo "󰤨"
@@ -194,15 +198,16 @@ is_enterprise() {
 
 wifi_list() {
     log_info "Scanning WiFi networks..."
-    # Rescan in background — don't wait for it
+    # Background rescan — completely non-blocking
     nmcli dev wifi rescan 2>/dev/null &
+    local rescan_pid=$!
 
     # Pre-fetch saved networks once instead of per-SSID
     local saved_networks
     saved_networks=$(nmcli -t -f NAME connection show 2>/dev/null)
 
     local result
-    result=$(nmcli -t -f SSID,SIGNAL,SECURITY,FREQ dev wifi \
+    result=$(nmcli -t -f SSID,SIGNAL,SECURITY,FREQ dev wifi 2>/dev/null \
         | grep -v '^:' \
         | sort -t: -k2,2 -rn \
         | awk -F: '!seen[$1]++ { print }' \
@@ -238,6 +243,7 @@ wifi_list() {
     fi
 
     echo "$result"
+    # Don't wait for rescan — user gets menu instantly
 }
 
 extract_ssid() {
@@ -647,16 +653,25 @@ show_connection_details() {
 
     log_info "Showing connection details for '$ssid' on device '$wifi_dev'"
 
-    local ip gateway dns mac speed signal freq security ipv6
-
-    ip=$(nmcli -t -f IP4.ADDRESS dev show "$wifi_dev" 2>/dev/null | head -1 | cut -d: -f2)
-    gateway=$(nmcli -t -f IP4.GATEWAY dev show "$wifi_dev" 2>/dev/null | head -1 | cut -d: -f2)
-    dns=$(nmcli -t -f IP4.DNS dev show "$wifi_dev" 2>/dev/null | cut -d: -f2 | tr '\n' ', ' | sed 's/,$//')
-    ipv6=$(nmcli -t -f IP6.ADDRESS dev show "$wifi_dev" 2>/dev/null | head -1 | cut -d: -f2-)
-    mac=$(nmcli -t -f GENERAL.HWADDR dev show "$wifi_dev" 2>/dev/null | cut -d: -f2-)
-    speed=$(nmcli -t -f WIFI.BITRATE dev show "$wifi_dev" 2>/dev/null | cut -d: -f2 | sed 's/^ *//')
+    # Batch all nmcli queries into one call instead of multiple
+    local -a details
+    mapfile -t details < <(nmcli -t -f \
+        IP4.ADDRESS,IP4.GATEWAY,IP4.DNS,IP6.ADDRESS,GENERAL.HWADDR,WIFI.BITRATE \
+        dev show "$wifi_dev" 2>/dev/null)
+    
+    local ip="${details[0]#IP4.ADDRESS:}"
+    local gateway="${details[1]#IP4.GATEWAY:}"
+    local dns="${details[2]#IP4.DNS:}"
+    local ipv6="${details[3]#IP6.ADDRESS:}"
+    local mac="${details[4]#GENERAL.HWADDR:}"
+    local speed="${details[5]#WIFI.BITRATE:}"
+    
+    # Still get active connection stats (can't batch with device stats)
+    local signal
     signal=$(nmcli -t -f active,signal dev wifi 2>/dev/null | grep '^yes' | cut -d: -f2)
+    local freq
     freq=$(nmcli -t -f active,freq dev wifi 2>/dev/null | grep '^yes' | cut -d: -f2)
+    local security
     security=$(nmcli -t -f active,security dev wifi 2>/dev/null | grep '^yes' | cut -d: -f2)
 
     log_debug "Details: ip=$ip gw=$gateway dns=$dns mac=$mac speed=$speed signal=$signal freq=$freq sec=$security"
@@ -695,11 +710,13 @@ show_connection_details() {
 
     local autoconnect_val
     autoconnect_val=$(nmcli -t -f connection.autoconnect connection show id "$ssid" 2>/dev/null | cut -d: -f2)
+    local metered_val
+    metered_val=$(nmcli -t -f connection.metered connection show id "$ssid" 2>/dev/null | cut -d: -f2)
 
     # Build menu — include 802.1X option if it's an enterprise connection
-    local menu_items="  Back\n  Forget Network\n  Change DNS\n  Auto-connect: $autoconnect_val\n  Copy IP Address\n  Disconnect"
+    local menu_items="  Back\n  Forget Network\n  Change DNS\n  Auto-connect: $autoconnect_val\n  Metered: $metered_val\n  Copy IP Address\n  Disconnect"
     if [ -n "$conn_eap" ]; then
-        menu_items="  Back\n  802.1X Settings\n  Forget Network\n  Change DNS\n  Auto-connect: $autoconnect_val\n  Copy IP Address\n  Disconnect"
+        menu_items="  Back\n  802.1X Settings\n  Forget Network\n  Change DNS\n  Auto-connect: $autoconnect_val\n  Metered: $metered_val\n  Copy IP Address\n  Disconnect"
     fi
 
     local action
@@ -728,6 +745,9 @@ show_connection_details() {
             ;;
         *"Auto-connect"*)
             toggle_autoconnect "$ssid"
+            ;;
+        *"Metered"*)
+            toggle_metered "$ssid"
             ;;
         *"Copy IP Address")
             if [ -n "$ip" ]; then
@@ -806,6 +826,23 @@ toggle_autoconnect() {
     else
         run_cmd "Enable autoconnect" nmcli connection modify id "$ssid" connection.autoconnect yes
         notify "Auto-connect enabled for $ssid"
+    fi
+}
+
+# ─── Toggle Metered Network ─────────────────────────────────────────
+
+toggle_metered() {
+    local ssid="$1"
+    local current
+    current=$(nmcli -t -f connection.metered connection show id "$ssid" 2>/dev/null | cut -d: -f2)
+    log_info "Toggling metered for '$ssid' (current: $current)"
+
+    if [ "$current" = "yes" ]; then
+        run_cmd "Disable metered" nmcli connection modify id "$ssid" connection.metered no
+        notify "Metered disabled for $ssid"
+    else
+        run_cmd "Enable metered" nmcli connection modify id "$ssid" connection.metered yes
+        notify "Metered enabled for $ssid (data usage tracking)"
     fi
 }
 
@@ -1076,7 +1113,7 @@ if [ "$WIFI_STATE" = "disabled" ]; then
         log_info "Enabling WiFi radio"
         run_cmd "Enable WiFi" nmcli radio wifi on
         notify "WiFi enabled"
-        sleep 2
+        # sleep 2
     else
         log_info "User cancelled, exiting"
         exit 0
@@ -1186,7 +1223,7 @@ while true; do
             log_info "Manual rescan requested"
             notify "Rescanning..."
             nmcli dev wifi rescan 2>/dev/null
-            sleep 2
+            # sleep 2
             continue
             ;;
         *"Hidden Network"*)
