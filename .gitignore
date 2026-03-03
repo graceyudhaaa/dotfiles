@@ -27,3 +27,5 @@ persistent_config.json
 
 wallpaper/Pictures/walls/*
 !wallpaper/Pictures/walls/meme.png
+wallpaper/.config/wallpaper/current
+!wallpaper/.config/wallpaper/.gitkeep
