@@ -1161,10 +1161,6 @@ if [ -n "$CURRENT_SSID" ]; then
     log_info "Currently connected to '$CURRENT_SSID'"
     wifi_dev=$(get_wifi_device)
 
-    # Single call for active wifi stats
-    signal=$(nmcli -t -f SSID,SIGNAL dev wifi 2>/dev/null | grep "^${CURRENT_SSID}:" | head -1 | cut -d: -f2)
-    sig_icon=$(signal_icon "${signal:-0}")
-
     # Only show wired if it's actually a DIFFERENT device than wifi
     wired_note=""
     if [ -n "$wired_connected" ] && [ "$wired_connected" != "$wifi_dev" ]; then
@@ -1176,9 +1172,7 @@ if [ -n "$CURRENT_SSID" ]; then
     conn_eap=$(echo "$_conn_info" | grep '^802-1x.eap' | cut -d: -f2)
     conn_identity=$(echo "$_conn_info" | grep '^802-1x.identity' | cut -d: -f2)
 
-    log_debug "Signal: ${signal:-?}% EAP: ${conn_eap:-none} Wired: ${wired_connected:-none}"
-
-    STATUS_LINE="$sig_icon  $CURRENT_SSID  │  SIGNAL: ${signal:-?}%"
+    STATUS_LINE="$sig_icon  $CURRENT_SSID"
     [ -n "$conn_eap" ] && STATUS_LINE+="\n  Auth: 802.1X ($conn_eap)  │  User: $conn_identity"
     STATUS_LINE+="$wired_note"
 
