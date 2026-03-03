@@ -24,3 +24,6 @@ icons/.icons/*
 mpv_sub-delay.json
 watch_later
 persistent_config.json
+
+wallpaper/Pictures/walls/*
+!wallpaper/Pictures/walls/meme.png
