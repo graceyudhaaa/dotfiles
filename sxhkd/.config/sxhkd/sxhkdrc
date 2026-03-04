@@ -84,6 +84,10 @@ ctrl + Escape
 ctrl + alt + Escape
   xkill
 
+# diodon
+super + v
+  diodon
+
 # move to the next workspace
 # Previous workspace
 ctrl + alt + left
