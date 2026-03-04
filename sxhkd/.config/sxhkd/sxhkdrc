@@ -52,13 +52,25 @@ alt + F1
 super + u
   xfce4-screenshooter -f -c -s ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png
 
+#  screenshot fullscreen with delay
+super + shift + u
+  xfce4-screenshooter -f -d 3 -c -s ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png
+
 #  screenshot active window
 super + w
   xfce4-screenshooter -w -c -s ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png
 
+#  screenshot active window with delay
+super + shift + w
+  xfce4-screenshooter -w -d 3 -c -s ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png
+
 #  screenshot selected area
 ctrl + alt + s
   xfce4-screenshooter -r -c -s ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png
+
+#  screenshot selected area with delay
+ctrl + shift + s
+  xfce4-screenshooter -r -d 3 -c -s ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png
 
 ctrl + alt + Delete
   xfce4-session-logout
