@@ -34,25 +34,6 @@ if [ -z "$interface" ]; then
     exit 0
 fi
 
-# Get download speed
-rx_prev=$(cat /sys/class/net/$interface/statistics/rx_bytes 2>/dev/null)
-sleep 1
-rx_next=$(cat /sys/class/net/$interface/statistics/rx_bytes 2>/dev/null)
-speed_bytes=$((rx_next - rx_prev))
-
-# Auto-select unit: KB/s or MB/s
-speed_kb=$(awk "BEGIN {printf \"%.0f\", $speed_bytes/1024}")
-if [ "$speed_bytes" -ge 1048576 ]; then
-    speed=$(awk "BEGIN {printf \"%.1f\", $speed_bytes/1048576}")
-    unit="M"
-elif [ "$speed_bytes" -ge 1024 ]; then
-    speed=$speed_kb
-    unit="K"
-else
-    speed="0"
-    unit="K"
-fi
-
 if [ -n "$wired_connected" ]; then
     echo "%{F$POLYBAR_COLOR_PRIMARY}󰈀"
 elif [ -n "$wifi_connected" ]; then
