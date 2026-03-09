@@ -28,7 +28,7 @@ alt + F2
 #   xfce4-display-settings --minimal
 
 super + p
-  polybar &
+  polybar main --config=/home/grace_yudha/.config/polybar/config.ini &
 
 super + v
   diodon
