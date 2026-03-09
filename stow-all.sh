@@ -11,6 +11,7 @@ dirs=(
   starship
   sxhkd
   wallpaper
+  dunst
 )
 for dir in "${dirs[@]}"; do
   stow --target="$HOME" "$dir"
