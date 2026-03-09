@@ -45,6 +45,8 @@ These dotfiles are managed with [GNU Stow](https://www.gnu.org/software/stow/) f
 - **pkg-config** – Helper tool for compiling applications and libraries
 - **feh** – Lightweight image viewer (used for setting wallpapers)
 - **pulseaudio-utils** – PulseAudio utilities (includes pactl, etc.)
+- **playerctl** – control media players via MPRIS
+- **mpv-mpris** – MPRIS plugin for mpv
 - **jq** – Command-line JSON processor
 - **fzf** – Command-line fuzzy finder
 - **picom** – X compositor for transparency and effects
