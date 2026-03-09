@@ -882,7 +882,10 @@ manage_saved_networks() {
     log_info "Found $count saved WiFi networks"
 
     local menu=""
-    while IFS= read -r name; do
+    local names=()
+    readarray -t names <<< "$saved_list"
+    
+    for name in "${names[@]}"; do
         local autoconnect
         autoconnect=$(nmcli -t -f connection.autoconnect connection show id "$name" 2>/dev/null | cut -d: -f2)
         local last_used
@@ -900,8 +903,8 @@ manage_saved_networks() {
         conn_eap=$(nmcli -t -f 802-1x.eap connection show id "$name" 2>/dev/null | cut -d: -f2)
         [ -n "$conn_eap" ] && ent_tag=" 󰈸"
         log_debug "  Saved: '$name' auto=$autoconnect last=$last_used eap=$conn_eap"
-        menu+=$(printf "%s  %-25s%s  Last: %s\n" "$auto_icon" "$name" "$ent_tag" "$last_used")
-    done <<< "$saved_list"
+        menu+="$(printf "%s  %-25s%s  Last: %s" "$auto_icon" "$name" "$ent_tag" "$last_used")"$'\n'
+    done
 
     local header="Auto  Network                    Last Used"
     local selection
@@ -1173,13 +1176,13 @@ if [ -n "$CURRENT_SSID" ]; then
     conn_identity=$(echo "$_conn_info" | grep '^802-1x.identity' | cut -d: -f2)
 
     STATUS_LINE="$sig_icon  $CURRENT_SSID"
-    [ -n "$conn_eap" ] && STATUS_LINE+="\n  Auth: 802.1X ($conn_eap)  │  User: $conn_identity"
+    [ -n "$conn_eap" ] && STATUS_LINE+=$'\n'"  Auth: 802.1X ($conn_eap)  │  User: $conn_identity"
     STATUS_LINE+="$wired_note"
 
     menu_items="  $CURRENT_SSID (connected)\n  Connection Details\n  Switch Network\n  Disconnect\n  Saved Networks\n  Hotspot\n  Diagnostics\n  Change DNS\n  Disable WiFi"
     [ -n "$conn_eap" ] && menu_items="  $CURRENT_SSID (connected)\n  Connection Details\n  802.1X Settings\n  Switch Network\n  Disconnect\n  Saved Networks\n  Hotspot\n  Diagnostics\n  Change DNS\n  Disable WiFi"
 
-    CHOICE=$(printf "$menu_items" | rofi_menu -p "󰤨 WiFi" -mesg "$STATUS_LINE")
+    CHOICE=$(printf "$menu_items" | rofi_menu -p "󰤨 WiFi" -mesg "$(echo -e "$STATUS_LINE")")
 
     log_info "Connected menu choice: '$CHOICE'"
 
