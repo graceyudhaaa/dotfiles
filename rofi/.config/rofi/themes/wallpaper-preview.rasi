@@ -1,0 +1,119 @@
+@import "tokyonight.rasi"
+
+* {
+    border-radius: 0px;
+    padding: 2px;
+    margin: 2px;
+    font: "JetBrainsMono Nerd Font Bold 12";
+}
+
+window {
+    background-color: @bg;
+    border-color: @hv;
+    border: 0px solid;
+    transparency: "real";
+    width: 900px;
+    height: 600px;
+}
+
+mainbox {
+    background-color: @bg;
+    padding: 10px;
+}
+
+inputbar {
+    border: 0px solid;
+    background-color: transparent;
+    border-color: @hv;
+    padding: 2px 2px;
+    margin: 2px;
+    text-color: @bg;
+    children: [ prompt, textbox-prompt-colon, entry ];
+}
+
+prompt {
+    enabled: false;
+}
+
+textbox-prompt-colon {
+    enabled: false;
+}
+
+entry {
+    placeholder: "Search wallpapers...";
+    placeholder-color: @hv;
+    background-color: transparent;
+    text-color: @hv;
+    font: "JetBrainsMono Nerd Font Italic 12";
+}
+
+listview {
+    lines: 2;
+    columns: 3;
+    spacing: 2px;
+    fixed-columns: true;
+    fixed-height: true;
+    fixed-width: true;
+    background-color: transparent;
+    scrollbar: false;
+}
+
+element {
+    width: 200px;
+    height: 200px;
+    orientation: vertical;
+    fixed-columns: true;
+    fixed-height: true;
+    fixed-width: true;
+    background-color: transparent;
+    text-color: @hv;
+}
+
+element-text {
+    border-color: @hv;
+    border: 1px solid;
+    padding: 5px;
+    background-color: transparent;
+    text-color: @hv;
+    horizontal-align: 0.5;
+    vertical-align: 0.5;
+}
+
+element-icon {
+    border-color: @hv;
+    border: 1px solid;
+    horizontal-align: 0.5;
+    vertical-align: 0.5;
+    size: 190px;
+    padding: 0px;
+    background-color: transparent;
+    text-color: inherit;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+element selected {
+    background-color: transparent;
+    border-color: @hv;
+    border: 3px solid;
+    text-color: @hv;
+}
+
+element selected.normal {
+    background-color: transparent;
+    color: @hv;
+}
+
+element selected element-icon {
+    border-color: @hv;
+    border: 3px solid;
+    background-color: transparent;
+}
+
+element selected element-text {
+    border-color: @hv;
+    border: 3px solid;
+    background-color: @bg;
+    text-color: @hv;
+    color: @hv;
+}

@@ -20,4 +20,12 @@ icons/.icons/*
 !icons/.icons/Vimix-Doder-dark
 !icons/.icons/Vimix-White-dark
 
+# mpv
 mpv_sub-delay.json
+watch_later
+persistent_config.json
+
+wallpaper/Pictures/walls/*
+!wallpaper/Pictures/walls/meme.png
+wallpaper/.config/wallpaper/current
+!wallpaper/.config/wallpaper/.gitkeep

@@ -55,13 +55,25 @@ alt + F1
 super + u
   xfce4-screenshooter -f -c -s ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png
 
+#  screenshot fullscreen with delay
+super + shift + u
+  xfce4-screenshooter -f -d 3 -c -s ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png
+
 #  screenshot active window
 super + w
   xfce4-screenshooter -w -c -s ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png
 
+#  screenshot active window with delay
+super + shift + w
+  xfce4-screenshooter -w -d 3 -c -s ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png
+
 #  screenshot selected area
 ctrl + alt + s
   xfce4-screenshooter -r -c -s ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png
+
+#  screenshot selected area with delay
+ctrl + shift + s
+  xfce4-screenshooter -r -d 3 -c -s ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png
 
 ctrl + alt + Delete
   xfce4-session-logout
@@ -74,6 +86,10 @@ ctrl + Escape
 
 ctrl + alt + Escape
   xkill
+
+# diodon
+super + v
+  diodon
 
 # move to the next workspace
 # Previous workspace
@@ -93,11 +109,16 @@ super + shift + d
   wmctrl -k off
 
 # Show power menu
-super + l
+super + shift + l
   ~/.config/polybar/scripts/rofi-power-menu.sh
 
-super + shift + l
-  xflock4
+# show network menu
+super + shift + n
+  ~/.config/rofi/rofi-wifi.sh
+
+# wallpaper switcher
+super + shift + b
+    ~/.config/rofi/wallpaper-switcher.sh
 
 
 # # make sxhkd reload its configuration files:
