@@ -123,8 +123,8 @@ execute_action() {
             ;;
         *"Previous Track"*)
             local was_playing=$(get_status)
-            playerctl position 0
             playerctl pause
+            playerctl position 0
             playerctl previous
             [ "$was_playing" = "Playing" ] && playerctl play
             wait_for_metadata

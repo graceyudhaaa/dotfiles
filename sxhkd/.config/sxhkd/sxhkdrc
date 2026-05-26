@@ -103,6 +103,10 @@ ctrl + alt + right
 super + shift + m
   ~/.config/rofi/rofi-media.sh
 
+# Media controls (vim-style)
+super + alt + {h,j,k,l}
+  {playerctl previous,playerctl pause,playerctl play,playerctl next}
+
 # Show desktop
 super + d
   wmctrl -k on
@@ -113,6 +117,17 @@ super + shift + d
 # Show power menu
 super + shift + l
   ~/.config/polybar/scripts/rofi-power-menu.sh
+
+# lock screen
+super + l
+  xflock4
+
+# screen brightness control
+super + F5
+  brightnessctl set 5%-
+  
+super + F6
+  brightnessctl set +5%
 
 # show network menu
 super + shift + n
