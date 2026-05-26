@@ -15,7 +15,6 @@ These dotfiles are managed with [GNU Stow](https://www.gnu.org/software/stow/) f
 
 ## Dependencies
 
-
 - **stow** – Symlink manager for dotfiles
 - **fish** – Friendly interactive shell
 - **bash** – GNU Bourne Again SHell
@@ -52,6 +51,20 @@ These dotfiles are managed with [GNU Stow](https://www.gnu.org/software/stow/) f
 - **picom** – X compositor for transparency and effects
 - **diodon** – Clipboard manager for X
 - **kitty** – Fast, feature-rich, GPU-based terminal emulator
+- **brightnessctl** - Control brightness (need sudo access to the video group `sudo usermod -aG video $USER`)
+
+Install distro packages (Debian/Ubuntu):
+
+```sh
+sudo apt update
+sudo apt install -y \
+   stow fish bash git curl wget build-essential gcc libx11-dev \
+   mpv polybar sxhkd rofi thunar xfce4-goodies libnotify-bin \
+   network-manager xclip dircolors bash-completion wmctrl x11-utils \
+   fonts-jetbrains-mono fonts-font-awesome fonts-noto-color-emoji \
+   pkg-config feh pulseaudio-utils playerctl jq fzf picom diodon kitty \
+   brightnessctl
+```
 
 **Manual/External Install:**
 
@@ -69,32 +82,43 @@ These dotfiles are managed with [GNU Stow](https://www.gnu.org/software/stow/) f
 
 1. **Clone this repo:**
    ```sh
-   git clone https://github.com/yourusername/dotfiles.git ~/dotfiles
+   git clone https://github.com/<your-github-username>/dotfiles.git ~/dotfiles
    cd ~/dotfiles
    ```
 
 2. **Symlink configs with Stow:**
+
+   Option A (recommended): use the helper script in this repo.
+
    ```sh
-   stow bash
-   stow fish
-   stow polybar
-   stow sxhkd
-   stow rofi
-   stow mpv
-   stow starship
-   stow autostart
-   stow picom
-   # ...add more as needed
+   chmod +x ./stow-all.sh
+   ./stow-all.sh
    ```
 
-   Or use the provided script:
+   Option B: stow manually package by package.
+
    ```sh
-   ./stow-all.sh
+   stow --target="$HOME" bash
+   stow --target="$HOME" fish
+   stow --target="$HOME" polybar
+   stow --target="$HOME" sxhkd
+   stow --target="$HOME" rofi
+   stow --target="$HOME" mpv
+   stow --target="$HOME" starship
+   stow --target="$HOME" autostart
+   stow --target="$HOME" picom
+   # ...add more as needed
    ```
 
 3. **Install all required packages and tools** (see above).
 
-4. **Restart your shell or log out/in** to apply changes.
+4. **Restart your shell session** (or log out/in) to apply all changes.
+
+5. **Optional: remove symlinks later** with Stow's delete mode:
+
+   ```sh
+   stow -D --target="$HOME" bash fish polybar sxhkd rofi mpv starship autostart picom
+   ```
 
 ---
 
@@ -104,6 +128,7 @@ These dotfiles are managed with [GNU Stow](https://www.gnu.org/software/stow/) f
 - Some files (like `.desktop` in autostart) require absolute paths; update these if your username or directory changes.
 - Review and edit scripts in `.local/bin/` as needed for your workflow.
 - If you add new configs, mirror the directory structure for Stow.
+- The `stow-all.sh` script currently stows: `autostart`, `bash`, `fish`, `kitty`, `mpv`, `picom`, `polybar`, `rofi`, `starship`, `sxhkd`, `wallpaper`, and `dunst`.
 
 ---
 
