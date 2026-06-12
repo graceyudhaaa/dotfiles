@@ -7,7 +7,7 @@ ctrl + alt + t
 #   xfce4-popup-whiskermenu
 
 # open rofi
-Super_L; @Super_L
+super + space
   rofi -modi drun,run,window,ssh -show drun -theme ~/.config/rofi/themes/tokyonight.rasi
 
 # open file manager
