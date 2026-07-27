@@ -141,3 +141,7 @@ super + shift + b
 # # make sxhkd reload its configuration files:
 super + Escape
   pkill -USR1 -x sxhkd
+
+# restart picom
+super + shift + Escape
+  pkill -USR1 -x picom
