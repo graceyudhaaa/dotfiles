@@ -14,6 +14,7 @@ wallpaper=$(find -L "$WALL_DIR" -maxdepth 1 -type f \( -iname "*.jpg" -o -iname 
     -printf "%f\n" | sort | while read -r wp; do
         printf "%s\0icon\x1f%s/%s\n" "$wp" "$WALL_DIR" "$wp"
     done | rofi -dmenu \
+        --no-history \
         -theme "$THEME_FILE" \
         -p "󰸉 Wallpaper")
 
