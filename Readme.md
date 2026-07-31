@@ -52,6 +52,7 @@ These dotfiles are managed with [GNU Stow](https://www.gnu.org/software/stow/) f
 - **diodon** – Clipboard manager for X
 - **kitty** – Fast, feature-rich, GPU-based terminal emulator
 - **brightnessctl** - Control brightness (need sudo access to the video group `sudo usermod -aG video $USER`)
+- **xfce4-screensaver**
 
 Install distro packages (Debian/Ubuntu):
 

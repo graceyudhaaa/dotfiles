@@ -4,7 +4,7 @@ Version=0.9.4
 Type=Application
 Name=polybar
 Comment=polybar
-Exec=polybar main --config=/home/grace_yudha/.config/polybar/config.ini
+Exec=polybar main --config=/home/grace_yudha/.config/polybar/config.ini -r
 OnlyShowIn=XFCE;
 RunHook=0
 StartupNotify=false

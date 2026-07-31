@@ -118,13 +118,13 @@ export PYENV_ROOT="$HOME/.pyenv"
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init - bash)"
 
-. "$HOME/.local/bin/env"
+# . "$HOME/.local/bin/env"
 
 eval "$(pyenv virtualenv-init -)"
 
 eval "$(starship init bash)"
 
-source ~/.local/share/blesh/ble-0.4.0-devel3/ble.sh
+source ~/.local/share/blesh/ble.sh
 
 export NVM_DIR="$HOME/.config/nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm

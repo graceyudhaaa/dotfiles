@@ -7,7 +7,7 @@ ctrl + alt + t
 #   xfce4-popup-whiskermenu
 
 # open rofi
-super + space
+ctrl + space
   rofi -modi drun,run,window,ssh -show drun -theme ~/.config/rofi/themes/tokyonight.rasi
 
 # open file manager
@@ -137,6 +137,18 @@ super + shift + n
 super + shift + b
     ~/.config/rofi/wallpaper-switcher.sh
 
+
+# dunst show history 
+super + shift + h
+  dunstctl history-pop
+
+# Power profile cycle (super + shift + p is taken, use super + alt + p)
+super + alt + p
+  ~/.config/rofi/power-profile-cycle.sh
+
+# Power profile menu (select specific profile)
+super + shift + alt + p
+  ~/.config/rofi/power-profile-menu.sh
 
 # # make sxhkd reload its configuration files:
 super + Escape

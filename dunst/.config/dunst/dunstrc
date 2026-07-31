@@ -82,18 +82,18 @@
     context = ctrl+shift+period
 
 [urgency_low]
-    background = colors.background
-    foreground = colors.foreground
+    background = "#192330"
+    foreground = "#c0caf5"
     timeout = 10
 
 [urgency_normal]
-    background = colors.background
-    foreground = colors.foreground
+    background = "#192330"
+    foreground = "#c0caf5"
     timeout = 10
 
 [urgency_critical]
-    background = colors.background
-    foreground = colors.foreground
+    background = "#192330"
+    foreground = "#c0caf5"
     frame_color = "#8C3D45"
     timeout = 10
 
